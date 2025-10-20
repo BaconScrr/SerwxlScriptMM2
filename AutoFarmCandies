@@ -333,17 +333,27 @@ end
 local RoundStart = ReplicatedStorage.Remotes.Gameplay.RoundStart
 local RoundEnd = ReplicatedStorage.Remotes.Gameplay.RoundEndFade
 
+-- Функция для проверки состояния раунда
+local function checkRoundState()
+    -- Если UI запускается во время раунда, устанавливаем farming в true
+    farming = true
+    start_position = getHRP().CFrame
+end
+
 RoundStart.OnClientEvent:Connect(function()
-	farming = true
-	start_position = getHRP().CFrame
+    farming = true
+    start_position = getHRP().CFrame
 end)
 
 RoundEnd.OnClientEvent:Connect(function()
-	farming = false
-	if start_position then
-		getHRP().CFrame = start_position
-	end
+    farming = false
+    if start_position then
+        getHRP().CFrame = start_position
+    end
 end)
+
+-- Проверяем состояние раунда при запуске UI
+checkRoundState()
 
 -- // Auto Reset Logic
 local CoinCollected = ReplicatedStorage.Remotes.Gameplay.CoinCollected
@@ -431,7 +441,7 @@ AntiAFKToggleCircle.BackgroundColor3 = Color3.fromRGB(100, 40, 140)
 AntiAFKToggleCircle.BorderSizePixel = 0
 Instance.new("UICorner", AntiAFKToggleCircle).CornerRadius = UDim.new(1, 0)
 
--- // Anti-AFK функция
+-- // Anti-AFK функция с прыжками каждые 5 секунд
 local function toggleAntiAFK()
     if antiAfkEnabled then
         -- Включаем анти-АФК
@@ -449,12 +459,16 @@ local function toggleAntiAFK()
             end
         end
         
-        -- Создаем соединение для Heartbeat
+        -- Создаем соединение для прыжков каждые 5 секунд
         antiAfkConnection = RunService.Heartbeat:Connect(function()
             if antiAfkEnabled then
-                VirtualInputManager:SendKeyEvent(true, "F", false, game)
+                -- Имитируем нажатие пробела для прыжка
+                VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
                 task.wait(0.1)
-                VirtualInputManager:SendKeyEvent(false, "F", false, game)
+                VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
+                
+                -- Ждем 5 секунд до следующего прыжка
+                task.wait(5)
             else
                 -- Если анти-АФК отключен, разрываем соединение
                 if antiAfkConnection then
@@ -467,9 +481,9 @@ local function toggleAntiAFK()
         -- Дополнительная защита через Idled
         Player.Idled:Connect(function()
             if antiAfkEnabled then
-                VirtualInputManager:SendKeyEvent(true, "F", false, game)
+                VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.Space, false, game)
                 task.wait(0.1)
-                VirtualInputManager:SendKeyEvent(false, "F", false, game)
+                VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.Space, false, game)
             end
         end)
         
